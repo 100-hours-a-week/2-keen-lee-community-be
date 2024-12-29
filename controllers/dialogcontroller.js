@@ -24,7 +24,15 @@ const selectDialog = async (req, res) => {
         res.status(500).json({ message: 'Error saving dialog', error: error.message });
     }
 }
-
+const goodcnt = async (req, res) => {
+    try {
+        const { dialogId, no } = req.params;
+            const goodcheck = await dialogModel.goodcnt(dialogId, no)
+            res.status(201).json(goodcheck);
+    } catch (error) {
+        res.status(500).json({ message: 'Error saving dialog', error: error.message });
+    }
+}
 const good = async (req, res) => {
     try {
         const { dialogId, nick, no } = req.params;
@@ -139,6 +147,7 @@ const updateDialog = async (req, res) => {
 
 module.exports = {
     selectDialog,
+    goodcnt,
     good,
     ungood,
     checkComment,

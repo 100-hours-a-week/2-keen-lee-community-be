@@ -2,6 +2,7 @@ const fs = require('fs');
 const { findSourceMap } = require('module');
 const path = require('path');
 const { readDialog } = require('../controllers/dialogcontroller');
+const e = require('express');
 
 // 파일 경로
 const filePath = path.join(__dirname, '../DATA', '/Users.json');
@@ -54,6 +55,49 @@ const readDialogs = async () => {
     }
 };
 
+const emailcheck = async (email, res) => {
+    try {
+        let users = await readUsers();
+        const emailExists = users.some(user => user.email === email);
+
+        const emaileff = email && emailreg.test(email);
+
+        if (!emaileff) {
+            return res.status(400).json({ 'message': '이메일형식이 아닙니다.', 'status_num': 1 });
+        }
+        else if (emailExists) {
+            return res.status(409).json({ 'message': '중복된 이메일입니다.', 'status_num': 3 });
+        }
+        // 성공 응답을 한 번만 보냄
+        return res.status(200).json({"message": "*", "user_id": 1});
+    } catch (error) {
+        // 오류 발생시 한 번만 응답 보내도록 함
+        console.error(error);
+        return res.status(500).json({ 'error': '서버 오류가 발생했습니다.' });
+    }
+};
+
+const nicknamecheck = async (nickname, res) => {
+    try {
+        let users = await readUsers();
+        const nicknameExists = users.some(user => user.nickname === nickname);
+
+        const nicknameeff = nickname && !nickreg.test(nickname) && !nick11.test(nickname);
+
+        if (!nicknameeff) {
+            return res.status(401).json({ 'message': '닉네임형식이 틀립니다.', 'status_num': 2 });
+        }
+        else if (nicknameExists) {
+            return res.status(409).json({ 'message': '중복된 닉네임입니다.', 'status_num': 4 });
+        }
+        // 성공 응답을 한 번만 보냄
+        return res.status(200).json({"message": "*", "user_id": 1});
+    } catch (error) {
+        // 오류 발생시 한 번만 응답 보내도록 함
+        console.error(error);
+        return res.status(500).json({ 'error': '서버 오류가 발생했습니다.' });
+    }
+};
 // 사용자 데이터 저장, 사용자 등록
 const saveUser = async (email, password, nickname, img, res) => {
     try {
@@ -281,6 +325,8 @@ module.exports = {
     getUser,
     readUsers,
     readDialogs,
+    emailcheck,
+    nicknamecheck,
     saveUser,
     login,
     getimg,

@@ -54,6 +54,19 @@ const saveDialog = async (dialogId, dialogData) => {
     }
 };
 
+const goodcnt = async (dialogId, no) => {
+    try {
+        let dialogs = await readDialogs();
+        const selectdia=dialogs.findIndex(user => user.list == no)
+            if(dialogs[selectdia].id === dialogId){
+                const selectnick =dialogs[selectdia].good;
+                    return selectnick;
+            }
+        } catch (error) {
+        throw new Error('Error saving dialog to dialoglist.json');
+    }
+};
+
 const good = async (dialogId, nick, no) => {
     try {
         let dialogs = await readDialogs();
@@ -237,6 +250,7 @@ module.exports = {
     readDialogs,
     addview,
     saveDialog,
+    goodcnt,
     good,
     ungood,
     deleteDialog,

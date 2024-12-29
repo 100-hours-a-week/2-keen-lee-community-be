@@ -44,8 +44,8 @@ const times = moment().format("YYYY-MM-DD")
 
 
 //app.use(cors({ origin: 'http://127.0.0.1:5500' }));
- app.use(cors({origin: 'http://localhost:3001'}));
-
+// app.use(cors({origin: 'http://localhost:3001'}));
+ app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' })); // JSON 요청 크기 10MB까지 허용
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true })); // URL-encoded 요청 크기 10MB까지 허용
 app.use(timeout('2s'));
@@ -58,27 +58,11 @@ app.use('/dialog', dialogRoutes);  // '/dialog' 경로에 dialogRoutes 라우터
 app.use('/users', userRoutes);
 app.get('/data', async (req, res) => {
    const data = await getDataFromDB();  // 데이터베이스에서 데이터 가져오기
-
-
-
-console.log("today", moment().add(0,"day").format("YYYY-MM-DD"));
-// console.log("week", moment().add(1,"week").format("YYYY-MM-DD"));
-// console.log("month", moment().add(1, "month").format("YYYY-MM-DD"));
-// console.log("Year", moment().add(1, "year").format("YYYY-MM-DD"));
-
-
-// console.log('Green trees'.green);
-// console.log('Red apples, Red Red'.underline.rainbow);
-// console.log('Rainbow All Day'.rainbow);
-// console.log('Drop the beat'.trap);
-// console.log('Zebras are so fun!'.zebra);
-// console.log('America, Heck Yeah!'.america);
-// console.log('This is me..');
-// console.log('Use random styles on everything.'.random);
    res.json(data);  // 가져온 데이터를 클라이언트에 JSON으로 응답
 });
 app.use(helmet());
 const port = 3000;
 app.listen(port, () => {
+   console.log("today", moment().add(0,"day").format("YYYY-MM-DD HH-mm-ss"));
   console.log(`Server running on port ${port}`.underline.random);
 });

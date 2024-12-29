@@ -11,6 +11,22 @@ const getUser = async (req, res) => {
     }
 }
 
+const emailcheck = async (req, res) => {
+    try {
+        const  email  = req.body;
+        await userModel.emailcheck(email.email, res);
+    } catch (error) {
+        res.status(500).json({ message: 'Error saving user', error: error.message });
+    }
+};
+const nicknamecheck = async (req, res) => {
+    try {
+        const  nickname  = req.body;
+        await userModel.nicknamecheck(nickname.nickname, res);
+    } catch (error) {
+        res.status(500).json({ message: 'Error saving user', error: error.message });
+    }
+};
 
 const saveUser = async (req, res) => {
     try {
@@ -127,6 +143,8 @@ const updateNickname = async (req, res) => {
 
 module.exports = {
     getUser,
+    emailcheck,
+    nicknamecheck,
     saveUser,
     login,
     getimg,
