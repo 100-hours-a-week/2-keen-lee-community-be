@@ -30,9 +30,9 @@ const nicknamecheck = async (req, res) => {
 
 const saveUser = async (req, res) => {
     try {
-        const { email, password, nickname, img } = req.body;
+        const { email, password, nickname, imgname, imgpath } = req.body;
         
-        await userModel.saveUser(email, password, nickname, img, res);
+        await userModel.saveUser(email, password, nickname, imgname, imgpath, res);
     } catch (error) {
         res.status(500).json({ message: 'Error saving user', error: error.message });
     }
@@ -71,8 +71,8 @@ const getinfo = async (req, res) => {
 
 const patchinfo = async (req, res) => {
     try {
-        const { img, nickname, email }= req.body;
-        await userModel.patchinfo(img, nickname, email, res);
+        const { imgpath, imgname, nickname, email }= req.body;
+        await userModel.patchinfo(imgpath, imgname, nickname, email, res);
         
     } catch (error) {
         res.status(500).json({message: 'Error patch user info', error : error.message})
@@ -92,7 +92,6 @@ const updatePassword = async (req, res) => {
     try {
         const newPassword  = req.body;
         const nickname = req.params;
-        console.log(newPassword, nickname) 
         if(!passwordreg.test(newPassword.password)){
             res.status(401).json({message: "비밀번호 형식을 지켜주세요!"});
         }

@@ -161,7 +161,6 @@ const addComment = async (dialogId, nick, index, updatedData)=> {
         const dialogIndex = dialogs.findIndex(dialog => dialog.list === Number(index));
         if(dialogIndex !== -1 && dialogs[dialogIndex].id === dialogId){
             if(nick === updatedData.id){
-                console.log(dialogs[dialogIndex].cmt) //이미지 추가 되었음 JS에서 변경
                 const data = updatedData;
                 dialogs[dialogIndex].cmt.push(data);
                 await fs.promises.writeFile(dialogPath, JSON.stringify(dialogs, null, 2), 'utf8');
@@ -211,7 +210,6 @@ const updateComment = async (dialogId, nick, i, cmt2) => {
 const deleteComment = async (id, no, i, commentData) =>{
     let dialogs = await readDialogs();
     const dialogIndex = dialogs.findIndex(dialog => dialog.list === Number(no));
-    console.log(id, no, i);
     if(dialogs[dialogIndex].id === id){
         const commentIndex = dialogs[dialogIndex].cmt.findIndex(user => user.no === Number(i));
     if ( commentIndex!== -1) {
@@ -219,7 +217,6 @@ const deleteComment = async (id, no, i, commentData) =>{
         let i = 1;
         dialogs[dialogIndex].cmt.forEach(element => {
             element.no = i;
-            console.log(element);
             i++;
         });
         await fs.promises.writeFile(dialogPath, JSON.stringify(dialogs, null, 2), 'utf8');

@@ -1,8 +1,5 @@
 const fs = require('fs');
-const { findSourceMap } = require('module');
 const path = require('path');
-const { readDialog } = require('../controllers/dialogcontroller');
-const e = require('express');
 
 // 파일 경로
 const filePath = path.join(__dirname, '../DATA', '/Users.json');
@@ -31,11 +28,12 @@ const readUsers = async () => {
 
 
 const getUser = async (nickname, res) => {
-    try{ 
+    try{
         let users = await readUsers();
         const userIndex =users.findIndex(user => user.nickname === nickname);
-        const getimg =users[userIndex].img;
-        return res.status(200).json(getimg);
+        const getimg = users[userIndex].imgname;
+        
+        return res.json(getimg);
     } catch(error) {
         throw new Error('Error reading Users.json');
     }
@@ -99,7 +97,7 @@ const nicknamecheck = async (nickname, res) => {
     }
 };
 // 사용자 데이터 저장, 사용자 등록
-const saveUser = async (email, password, nickname, img, res) => {
+const saveUser = async (email, password, nickname, imgname, imgpath, res) => {
     try {
         let users = await readUsers();
         const emailExists = users.some(user => user.email === email);
@@ -132,7 +130,8 @@ const saveUser = async (email, password, nickname, img, res) => {
             email: email,
             password: password,
             nickname: nickname,
-            img: img
+            imgname: imgname,
+            imgpath: imgpath
         };
         
         users.push(newUser);
@@ -172,7 +171,7 @@ const getimg = async (id, res) => {
         
         const findnickname = users.find(user => user.nickname === id)
         if(findnickname.nickname === id){
-            res.status(200).json({"message" : "이미지 로드성공", "img": findnickname.img});
+            res.status(200).json({"message" : "이미지 로드성공", "img": findnickname.imgname});
         }
     } catch (error){
         return res.status(500).json({"message" : "서버 응답에 오류 발생"});
@@ -184,26 +183,23 @@ const getinfo = async (nickname, res) => {
         let users = await readUsers();
         
         const findinfo = users.find(user => user.nickname === nickname.id)
-        console.log(findinfo)
-        return res.status(200).json({"email":findinfo.email, "nickname" :findinfo.nickname, img:findinfo.img});
+        return res.status(200).json({"email":findinfo.email, "nickname" :findinfo.nickname, "imgname":findinfo.imgname, "imgpath":findinfo.imgpath});
     } catch (error){
         return res.status(500).json({"message" : "서버 응답에 오류 발생"});
     }
 }
 
 
-const patchinfo = async (img, nickname, email, res) => {
+const patchinfo = async (imgpath, imgname, nickname, email, res) => {
     try{
         let users = await readUsers();
         const selectinfo=users.find(user => user.email === email);
-        if(!nick11.test(nickname) && !nickreg.test(nickname) && nickname){    
+        if(!nick11.test(nickname) && !nickreg.test(nickname) && nickname){
             if(selectinfo.nickname === nickname){
                 users.forEach(user => {
                     if(user.nickname === selectinfo.nickname){
-                        user.img =img;
-                        if(img !== null){
-                            user.img =img;
-                        }
+                        user.imgname =imgname;
+                        user.imgpath =imgpath;
                     }
                 })
                 await fs.promises.writeFile(filePath, JSON.stringify(users, null, 2), 'utf8');
@@ -218,7 +214,7 @@ const patchinfo = async (img, nickname, email, res) => {
                 dialog.forEach(element => {
                     if(element.id===selectinfo.nickname){
                     element.id=nickname;
-                    element.image = img;
+                    element.image = imgname;
                     }
                     element.cmt.forEach(element2 => {
                         if(element2.id === selectinfo.nickname){
@@ -235,11 +231,7 @@ const patchinfo = async (img, nickname, email, res) => {
                 users.forEach(user => {
                     if(user.nickname === selectinfo.nickname){
                         user.nickname = nickname;
-                        user.img =img;
-                        console.log(img);
-                        if(img !== null){
-                            user.img =img;
-                        }
+                        user.imgname =imgname;
                     }
                 })
                 await fs.promises.writeFile(filePath, JSON.stringify(users, null, 2), 'utf8');
@@ -262,7 +254,7 @@ const deleteUser = async (email) => {
         let dialog = await readDialogs();
         const nickname = users.find(user => user.email === email);
         users = users.filter(user => user.email !== email);
-        dialog = dialog.filter(element => element.id !== nickname.nickname)
+        dialog = dialog.filter(element => element.id !== nickname.nickname);
 
 
 
