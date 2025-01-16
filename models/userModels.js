@@ -67,7 +67,7 @@ const emailcheck = async (email, res) => {
             return res.status(409).json({ 'message': '중복된 이메일입니다.', 'status_num': 3 });
         }
         // 성공 응답을 한 번만 보냄
-        return res.status(200).json({"message": "*", "user_id": 1});
+        return res.status(200).json({"message": "", "user_id": 1});
     } catch (error) {
         // 오류 발생시 한 번만 응답 보내도록 함
         console.error(error);
@@ -89,7 +89,7 @@ const nicknamecheck = async (nickname, res) => {
             return res.status(409).json({ 'message': '중복된 닉네임입니다.', 'status_num': 4 });
         }
         // 성공 응답을 한 번만 보냄
-        return res.status(200).json({"message": "*", "user_id": 1});
+        return res.status(200).json({"message": "", "user_id": 1});
     } catch (error) {
         // 오류 발생시 한 번만 응답 보내도록 함
         console.error(error);
@@ -148,19 +148,20 @@ const saveUser = async (email, password, nickname, imgname, imgpath, res) => {
 
 
 //유저 로그인
-const login = async (email, password, res) => {
+const login = async (email, password) => {
     try {
-        let users = await readUsers();
+        const users = await readUsers();
         
         const findemail = users.find(user => user.email === email)
         if(findemail.password === password){
-            res.status(200).json({"message" : "로그인 성공~", "user_id" : 1, "nickname" : findemail.nickname});
+            // req.session.username = findemail.nickname;
+            return {"message" : "로그인 성공~", "user_id" : 1, "nickname" : findemail.nickname};
         }
         else{
-            res.status(409).json({"message" : "로그인 실패~", "user_id" : 0})
+            return json({"message" : "로그인 실패~", "user_id" : 0});
         }
     } catch (error){
-        return res.status(500).json({"message" : "서버 응답에 오류 발생"});
+            return json({"message" : "서버 응답에 오류 발생"});
     }
 }
 
@@ -182,7 +183,7 @@ const getinfo = async (nickname, res) => {
     try {
         let users = await readUsers();
         
-        const findinfo = users.find(user => user.nickname === nickname.id)
+        const findinfo = users.find(user => user.nickname === nickname)
         return res.status(200).json({"email":findinfo.email, "nickname" :findinfo.nickname, "imgname":findinfo.imgname, "imgpath":findinfo.imgpath});
     } catch (error){
         return res.status(500).json({"message" : "서버 응답에 오류 발생"});
@@ -203,10 +204,10 @@ const patchinfo = async (imgpath, imgname, nickname, email, res) => {
                     }
                 })
                 await fs.promises.writeFile(filePath, JSON.stringify(users, null, 2), 'utf8');
-                return res.status(201).json({"message": '정보 변경성공~.', "user_id" :1});
+                return ({"message": '정보 변경성공~.', "user_id" :1, "username": nickname});
             }
             else if(users.some(user => user.nickname === nickname)){
-                    return res.status(409).json({"message": '중복된 닉네임입니다.', "nickname" :nickname});
+                return res.status(409).json({"message": '중복된 닉네임입니다.', "nickname" :nickname});
             }
             else{
                 /// 게시글, 게시글 댓글, 게시글 좋아요 닉네임 변경 하는 로직 추가 해야함
@@ -236,7 +237,7 @@ const patchinfo = async (imgpath, imgname, nickname, email, res) => {
                 })
                 await fs.promises.writeFile(filePath, JSON.stringify(users, null, 2), 'utf8');
                 await fs.promises.writeFile(dialogPath, JSON.stringify(dialog, null, 2), 'utf8');
-                return res.status(201).json({"message": '정보 변경성공~.', "user_id" :1});
+                return ({"message": '정보 변경성공~.', "user_id" :1, "username": nickname});
             }
         }
         else{
@@ -248,12 +249,12 @@ const patchinfo = async (imgpath, imgname, nickname, email, res) => {
     }
 }
 // 사용자 삭제
-const deleteUser = async (email) => {
+const deleteUser = async (username) => {
     try {
         let users = await readUsers();
         let dialog = await readDialogs();
-        const nickname = users.find(user => user.email === email);
-        users = users.filter(user => user.email !== email);
+        const nickname = users.find(user => user.nickname === username);
+        users = users.filter(user => user.email !== nickname.email);
         dialog = dialog.filter(element => element.id !== nickname.nickname);
 
 
@@ -265,14 +266,14 @@ const deleteUser = async (email) => {
             
             let count2 = 1;
             let filtercmt=element.cmt.filter(element2 => element2.id !== nickname.nickname);
-            
+            let filtergood = element.good.filter(element3 => element3.nickname !== nickname.nickname)
             filtercmt.forEach(element2 => {
                 element2.no = count2;
                 count2++;
             });
             element.cmt = filtercmt;
+            element.good = filtergood;
         });
-        
         
         
          await fs.promises.writeFile(dialogPath, JSON.stringify(dialog, null, 2), 'utf8');

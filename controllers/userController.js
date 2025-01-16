@@ -4,7 +4,7 @@ const passwordreg =
 
 const getUser = async (req, res) => {
     try{
-        const nickname = req.params.id;
+        const nickname = req.session.username;
         await userModel.getUser(nickname, res);
     } catch (error) {
         res.status(500).json({ message: 'Error saving user', error: error.message });
@@ -41,8 +41,9 @@ const saveUser = async (req, res) => {
 const login = async (req, res) => {
     try {
         const {email, password} = req.body;
-
-        await userModel.login(email, password, res);
+        const s = await userModel.login(email, password);
+        req.session.username = s.nickname;
+        res.status(200).json(s);
     } catch (error) {
         res.status(500).json({ message: 'Error login user', error : error.message});
     }
@@ -61,7 +62,7 @@ const getimg = async (req, res) => {
 
 const getinfo = async (req, res) => {
     try {
-        const nickname = req.params;
+        const nickname = req.session.username;
         await userModel.getinfo(nickname, res);
     } catch (error) {
         res.status(500).json({message: 'Error get user info', error : error.message})
@@ -72,7 +73,13 @@ const getinfo = async (req, res) => {
 const patchinfo = async (req, res) => {
     try {
         const { imgpath, imgname, nickname, email }= req.body;
-        await userModel.patchinfo(imgpath, imgname, nickname, email, res);
+        const d=await userModel.patchinfo(imgpath, imgname, nickname, email, res);
+        console.log(d.username);
+        if(d.user_id===1){
+            req.session.username=d.username;
+            res.status(201).json(d);
+        }
+        
         
     } catch (error) {
         res.status(500).json({message: 'Error patch user info', error : error.message})
@@ -80,8 +87,8 @@ const patchinfo = async (req, res) => {
 }
 const deleteUser = async (req, res) => {
     try {
-        const { email } = req.body;
-        await userModel.deleteUser(email);
+        const username=req.session.username;
+        await userModel.deleteUser(username);
         res.status(200).json({ message: 'User deleted successfully!' , user_id : 1});
     } catch (error) {
         res.status(500).json({ message: 'Error deleting user', error: error.message });
@@ -91,11 +98,11 @@ const deleteUser = async (req, res) => {
 const updatePassword = async (req, res) => {
     try {
         const newPassword  = req.body;
-        const nickname = req.params;
+        const nickname = req.session.username;
         if(!passwordreg.test(newPassword.password)){
             res.status(401).json({message: "비밀번호 형식을 지켜주세요!"});
         }
-        await userModel.updatePassword(nickname.id, newPassword.password);
+        await userModel.updatePassword(nickname, newPassword.password);
         res.status(200).json({ message: 'Password updated successfully!', user_id : 1 });
     } catch (error) {
         res.status(500).json({ message: 'Error updating password', error: error.message });

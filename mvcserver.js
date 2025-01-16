@@ -8,9 +8,49 @@ const helmet = require('helmet'); //xss 입력방지
 const moment = require('moment'); // 현재 시각을 이용 하기 위한 모듈
 let colors = require('colors'); // 로그에 색깔입히기 모듈
 const path = require('path');
-const multer = require('multer');
+const multer = require('multer'); //이미지 처리
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
+
+
+
 const fs = require('fs');
-app.use(cors({origin: 'http://localhost:3001'}));
+app.use(cors({origin: 'http://localhost:3001', credentials: true }));
+
+app.use(cookieParser());
+app.use(bodyParser.json());
+app.use(
+    session({
+        secret: 'keen', // 세션 암호화 키
+        resave: false,             // 세션 변경이 없을 경우 저장하지 않음
+        saveUninitialized: true,   // 비어있는 세션도 저장
+        cookie: {
+            httpOnly: true,        // JavaScript에서 쿠키 접근 금지
+            maxAge: 24 * 60 * 60 * 1000, // 1일
+        },
+    })
+);
+
+
+// 로그아웃 엔드포인트
+app.get('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            return res.status(500).json({ message: '로그아웃 실패' });
+        }
+        res.clearCookie('connect.sid'); // 세션 쿠키 삭제
+        res.json({ message: '로그아웃 완료' });
+    });
+});
+
+// 로그인 상태 확인 엔드포인트
+app.get('/status', (req, res) => {
+    if (req.session.username) {
+        res.json({ loggedIn: true, username: req.session.username });
+    } else {
+        res.json({ loggedIn: false });
+    }
+});
 
 
 if (!fs.existsSync('POTO')) {
@@ -18,7 +58,6 @@ if (!fs.existsSync('POTO')) {
     fs.mkdirSync('POTO');
 }
 
-// Multer 설정
 const upload = multer({
     storage: multer.diskStorage({
         destination(req, file, cb) {

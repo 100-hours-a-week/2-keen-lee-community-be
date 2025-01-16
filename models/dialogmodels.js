@@ -16,31 +16,31 @@ const readDialogs = async () => {
         throw new Error('Error reading dialoglist.json');
     }
 };
-const addview = async (id, no, res) => {
+const addview = async (id, no, username, res) => {
     try {
         let dialogs = await readDialogs();
         const selectdia=dialogs.findIndex(user => user.list == no)
         if(dialogs[selectdia].id === id){
             dialogs[selectdia].views=dialogs[selectdia].views+1;
             await fs.promises.writeFile(dialogPath, JSON.stringify(dialogs, null, 2), 'utf8');
-            res.status(201).json(dialogs[selectdia]);
+            res.status(201).json({data:dialogs[selectdia], "username":username});
         }
     } catch (error) {
         throw new Error('Error reading dialoglist.json');
     }
 };
 // 다이얼로그 저장
-const saveDialog = async (dialogId, dialogData) => {
+const saveDialog = async (username, dialogData) => {
     try {
         let today = new Date();   
         const date = today.getFullYear() + '-' + (today.getMonth()+1) + '-' + today.getDate() + " " + today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
         let dialogs = await readDialogs();
         const dialogData2 = dialogData;
-        const dialogId2 = dialogId;
+        const dialogId2 = username;
         const dialog = {
             ...dialogData2,
             list : dialogs.length+1,
-            id :dialogId2.id,
+            id :dialogId2,
             good: [],
             views: 0,
             comment: 0,
@@ -109,7 +109,7 @@ const deleteDialog = async (dialogId, nick, no) => {
     try {
         let dialogs = await readDialogs();
         const dialogIndex=dialogs.findIndex(dialog => dialog.list === Number(no));
-        if(dialogs[dialogIndex].id === dialogId && nick ===dialogs[dialogIndex].id){
+        if(dialogs[dialogIndex].id === dialogId && nick === dialogs[dialogIndex].id){
             let i =1;
             dialogs = dialogs.filter(dialog => dialog.list !== Number(no));
             dialogs.forEach(element => { element.list = i;
@@ -123,14 +123,17 @@ const deleteDialog = async (dialogId, nick, no) => {
     }
 };
 
-const getupdateDialog = async (dialogId, nick, no) => {
+const getupdateDialog = async (username, no) => {
     try{
         let dialogs = await readDialogs();
         const dialogIndex = dialogs.findIndex(dialog => dialog.list === Number(no));
-        if(dialogId === nick){
+        if(username === dialogs[dialogIndex].id){
             if (dialogIndex !== -1) {
                 return dialogs[dialogIndex];
             }
+        }
+        else{
+            console.log('잘못된 접근입니다.');
         }
     } catch (error) {
         throw new Error('Error getupdating dialog');
@@ -138,11 +141,11 @@ const getupdateDialog = async (dialogId, nick, no) => {
 }    
 
 // 다이얼로그 수정
-const updateDialog = async (dialogId, nick, no, updatedData) => {
+const updateDialog = async (username, no, updatedData) => {
     try {
         let dialogs = await readDialogs();
         const dialogIndex = dialogs.findIndex(dialog => dialog.list === Number(no));
-        if(dialogId === nick){
+        if(username === dialogs[dialogIndex].id){
             if (dialogIndex !== -1) {
                 dialogs[dialogIndex] = { ...dialogs[dialogIndex], ...updatedData };
                 await fs.promises.writeFile(dialogPath, JSON.stringify(dialogs, null, 2), 'utf8');
