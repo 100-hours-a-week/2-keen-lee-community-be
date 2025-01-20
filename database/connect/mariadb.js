@@ -1,4 +1,4 @@
-const mariadb = require('mariadb');
+import mariadb from 'mariadb';
 
 // MariaDB 연결 풀 생성
 const pool = mariadb.createPool({
@@ -10,13 +10,13 @@ const pool = mariadb.createPool({
 });
 
 // DB 연결을 얻는 함수
-async function getConnection() {
+const getConnection =async () => {
   let conn;
   try {
-    // 연결 풀에서 커넥션 가져오기
     conn = await pool.getConnection();
     console.log('DB 연결 성공');
-    // DB 작업을 여기에 추가
+    return conn;
+    
   } catch (err) {
     console.error('DB 연결 실패:', err);
   } finally {
@@ -24,4 +24,4 @@ async function getConnection() {
   }
 }
 
-module.exports = pool, getConnection();  // 연결 풀 객체를 외부로 내보냄
+export {pool, getConnection};

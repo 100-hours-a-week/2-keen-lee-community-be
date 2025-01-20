@@ -1,6 +1,4 @@
-const { json } = require('express');
-const dialogModel = require('../models/dialogmodels.js');
-
+import * as dialogModel from '../models/dialogmodels.js';
 const readDialog = async (req, res) => {
     try{
         res.status(200).json(await dialogModel.readDialogs());
@@ -160,8 +158,7 @@ const updateDialog = async (req, res) => {
         res.status(500).json({ message: 'Error updating dialog', error : error.message });
     }
 };
-
-module.exports = {
+export {
     selectDialog,
     goodcnt,
     good,

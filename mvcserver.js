@@ -1,20 +1,26 @@
-const express = require('express');
+import express from 'express'
+import bodyParser from 'body-parser'
+import timeout from 'connect-timeout' // 리소스부하 방지
+import cors from 'cors'//cors방지
+import RateLimit from 'express-rate-limit'//DDOS방지
+import helmet from 'helmet'//xss 입력방지
+import moment from 'moment'// 현재 시각을 이용 하기 위한 모듈
+import colors from 'colors'// 로그에 색깔입히기 모듈
+import path from 'path'
+import multer from 'multer'
+import session from 'express-session'
+import cookieParser from 'cookie-parser'
+import fs from 'fs'
+
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
-const bodyParser = require('body-parser');
-const timeout = require('connect-timeout'); // 리소스부하 방지
-const cors = require('cors'); //cors방지
-const RateLimit = require('express-rate-limit'); //DDOS방지
-const helmet = require('helmet'); //xss 입력방지
-const moment = require('moment'); // 현재 시각을 이용 하기 위한 모듈
-let colors = require('colors'); // 로그에 색깔입히기 모듈
-const path = require('path');
-const multer = require('multer'); //이미지 처리
-const session = require('express-session');
-const cookieParser = require('cookie-parser');
 
+import dialogRoutes from './routes/dialogRouter.js'; // default import
+import userRoutes from './routes/userRoutes.js';
 
-
-const fs = require('fs');
 app.use(cors({origin: 'http://localhost:3001', credentials: true }));
 
 app.use(cookieParser());
@@ -101,17 +107,17 @@ const apiLimiter = RateLimit({
       });
    },
 });
-const dialogRoutes = require('./routes/dialogRouter.js');  // 경로 수정
-const userRoutes = require('./routes/userRoutes.js');
 
-const mariadb = require('./database/connect/mariadb.js');
-async function getDataFromDB() {
+
+import { getConnection } from'./database/connect/mariadb.js';
+ const getDataFromDB = async () => {
    try {
       // 풀에서 연결을 가져오기
-      const connection = await mariadb.getConnection();
+      const connection = await getConnection();
 
       // SQL 쿼리 실행
-      const rows = await connection.query("SELECT * FROM test.Users");
+      const rows = await connection.query('SELECT * FROM test.Users');
+        // console.log('쿼리 결과:', rows);
 
 
       connection.release();  // 연결 반환
@@ -142,9 +148,25 @@ app.get('/data', async (req, res) => {
    const data = await getDataFromDB();  // 데이터베이스에서 데이터 가져오기
    res.json(data);  // 가져온 데이터를 클라이언트에 JSON으로 응답
 });
-app.use(helmet());
+//app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'", 'https://localhost:3000'],
+        scriptSrc: ["'self'", 'https://localhost:3000'],
+      },
+    },
+    xssFilter: true,
+    frameguard: { action: 'deny' },
+  }));
 const port = 3000;
 app.listen(port, () => {
+    fetch('http://localhost:3000/data')
+    .then(response => response.json())
+    .then(data => {
+        console.log(data)
+    })
+
    console.log("today", moment().add(0,"day").format("YYYY-MM-DD HH-mm-ss"));
   console.log(`Server running on port ${port}`.underline.random);
 });

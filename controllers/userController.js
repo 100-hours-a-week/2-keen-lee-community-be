@@ -1,4 +1,4 @@
-const userModel = require('../models/userModels');
+import * as userModel from '../models/userModels.js';
 const passwordreg =
     /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,20}$/;
 
@@ -147,7 +147,7 @@ const updateNickname = async (req, res) => {
     }
 }
 
-module.exports = {
+export {
     getUser,
     emailcheck,
     nicknamecheck,

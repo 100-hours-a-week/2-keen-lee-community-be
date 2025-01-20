@@ -2,6 +2,7 @@
     "name": "html",
     "version": "1.0.0",
     "main": "feserver.js",
+    "type": "module",
     "scripts": {
         "start": "node feserver.js",
         "lint": "eslint .",
@@ -10,6 +11,7 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "type": "module"
     },
+
     "author": "",
     "license": "ISC",
     "dependencies": {

@@ -1,9 +1,13 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs'
+import path from 'path'
 
-// 파일 경로
-const dialogPath = path.join(__dirname, '../DATA', '/dialoglist.json');
-const filePath = path.join(__dirname, '../DATA', '/Users.json');
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const dialogPath = path.resolve(__dirname, '../DATA/dialoglist.json');
+
 // 다이얼로그 데이터 읽기
 const readDialogs = async () => {
     try {
@@ -246,7 +250,7 @@ const selectComment = async (dialogId, nick, index) =>{
     return commentIndex3;
 
 } 
-module.exports = {
+export {
     readDialogs,
     addview,
     saveDialog,

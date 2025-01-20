@@ -1,15 +1,17 @@
-const express = require('express');
-const router = express.Router();
-const userController = require('../controllers/userController.js');
-router.get('/', userController.getUser);
-router.post('/emailcheck', userController.emailcheck);
-router.post('/nicknamecheck', userController.nicknamecheck);
-router.post('/saveUser', userController.saveUser);
-router.post('/login', userController.login);
-router.get('/getimg/:id', userController.getimg);
-router.get('/infochange', userController.getinfo);
-router.post('/infochange/button', userController.patchinfo);
-router.delete('/deleteUser/infochange', userController.deleteUser); 
-router.post('/updatePassword', userController.updatePassword);
+import express from 'express'
+import * as userController from '../controllers/userController.js'
 
-module.exports = router;
+const userrouter = express.Router();
+
+userrouter.get('/', userController.getUser);
+userrouter.post('/emailcheck', userController.emailcheck);
+userrouter.post('/nicknamecheck', userController.nicknamecheck);
+userrouter.post('/saveUser', userController.saveUser);
+userrouter.post('/login', userController.login);
+userrouter.get('/getimg/:id', userController.getimg);
+userrouter.get('/infochange', userController.getinfo);
+userrouter.post('/infochange/button', userController.patchinfo);
+userrouter.delete('/deleteUser/infochange', userController.deleteUser); 
+userrouter.post('/updatePassword', userController.updatePassword);
+
+export default userrouter;

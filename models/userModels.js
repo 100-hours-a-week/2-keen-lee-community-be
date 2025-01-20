@@ -1,9 +1,13 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs'
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// 파일 경로
-const filePath = path.join(__dirname, '../DATA', '/Users.json');
-const dialogPath = path.join(__dirname, '../DATA', '/dialoglist.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const filePath = path.resolve(__dirname, '../DATA/Users.json');
+const dialogPath = path.resolve(__dirname, '../DATA/dialoglist.json');
+
 const emailreg =
     /(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/;
 const nickreg = /^(?=.*\s).{0,10}$/;  // 띄어쓰기 포함하는지 검사
@@ -313,8 +317,7 @@ const updateNickname = async (nickname, email) => {
 
 
 
-
-module.exports = {
+export {
     getUser,
     readUsers,
     readDialogs,
