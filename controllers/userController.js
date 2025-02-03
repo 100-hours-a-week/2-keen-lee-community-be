@@ -1,11 +1,11 @@
-import * as userModel from '../models/userModels.js';
+import * as userModel from '../models/DBuserModels.js';
 const passwordreg =
     /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,20}$/;
 
 const getUser = async (req, res) => {
     try{
         const nickname = req.session.username;
-        await userModel.getUser(nickname, res);
+        await userModel.getimg(nickname, res);
     } catch (error) {
         res.status(500).json({ message: 'Error saving user', error: error.message });
     }

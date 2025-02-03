@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 const filePath = path.resolve(__dirname, '../DATA/Users.json');
 const dialogPath = path.resolve(__dirname, '../DATA/dialoglist.json');
 
-
+import * as db from '../database/connect/mariadb.js';
 
 const emailreg =
     /(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/;
@@ -33,17 +33,6 @@ const readUsers = async () => {
 };
 
 
-const getUser = async (nickname, res) => {
-    try{
-        let users = await readUsers();
-        const userIndex =users.findIndex(user => user.nickname === nickname);
-        const getimg = users[userIndex].imgname;
-        
-        return res.json(getimg);
-    } catch(error) {
-        throw new Error('Error reading Users.json');
-    }
-}
 
 
 // 다이얼로그 데이터 읽기
@@ -61,15 +50,21 @@ const readDialogs = async () => {
 
 const emailcheck = async (email, res) => {
     try {
-        let users = await readUsers();
-        const emailExists = users.some(user => user.email === email);
-
+        const emailExists = await db.emailcheck(email);
+        let result = emailExists[0];
+        if(!result){
+            result= false;
+        }
+        else{
+            result=result.email;
+        }
+        
         const emaileff = email && emailreg.test(email);
-
+        
         if (!emaileff) {
             return res.status(400).json({ 'message': '이메일형식이 아닙니다.', 'status_num': 1 });
         }
-        else if (emailExists) {
+        else if (result) {
             return res.status(409).json({ 'message': '중복된 이메일입니다.', 'status_num': 3 });
         }
         // 성공 응답을 한 번만 보냄
@@ -83,15 +78,21 @@ const emailcheck = async (email, res) => {
 
 const nicknamecheck = async (nickname, res) => {
     try {
-        let users = await readUsers();
-        const nicknameExists = users.some(user => user.nickname === nickname);
+        const nicknameExists = await db.nicknamecheck(nickname);
+        let result = nicknameExists[0];
+        if(!result){
+            result= false;
+        }
+        else{
+            result=result.nickname;
+        }
 
         const nicknameeff = nickname && !nickreg.test(nickname) && !nick11.test(nickname);
 
         if (!nicknameeff) {
             return res.status(401).json({ 'message': '닉네임형식이 틀립니다.', 'status_num': 2 });
         }
-        else if (nicknameExists) {
+        else if (result) {
             return res.status(409).json({ 'message': '중복된 닉네임입니다.', 'status_num': 4 });
         }
         // 성공 응답을 한 번만 보냄
@@ -105,10 +106,22 @@ const nicknamecheck = async (nickname, res) => {
 // 사용자 데이터 저장, 사용자 등록
 const saveUser = async (email, password, nickname, imgname, imgpath, res) => {
     try {
-        let users = await readUsers();
-        const emailExists = users.some(user => user.email === email);
-        const nicknameExists = users.some(user => user.nickname === nickname);
-        
+        const emailExists = await db.emailcheck(email);
+        let resultemail = emailExists[0];
+        if(!resultemail){
+            resultemail= false;
+        }
+        else{
+            resultemail=resultemail.email;
+        }
+        const nicknameExists = await db.nicknamecheck(nickname);
+        let resultnickname = nicknameExists[0];
+        if(!resultnickname){
+            resultnickname= false;
+        }
+        else{
+            resultnickname=resultnickname.nickname;
+        }
         // 유효성 검사
         const emaileff = email && emailreg.test(email);
         const nicknameeff = nickname && !nickreg.test(nickname) && !nick11.test(nickname);
@@ -117,7 +130,7 @@ const saveUser = async (email, password, nickname, imgname, imgpath, res) => {
         if (!emaileff) {
             return res.status(401).json({ 'invalid_requestError': '이메일형식이 아닙니다.', 'status_num': 1 });
         }
-        else if (emailExists) {
+        else if (resultemail) {
             return res.status(401).json({ 'invalid_requestError': '중복된 이메일입니다.', 'status_num': 3 });
         }
         else if (!passwordff) {
@@ -126,7 +139,7 @@ const saveUser = async (email, password, nickname, imgname, imgpath, res) => {
         else if (!nicknameeff) {
             return res.status(401).json({ 'invalid_requestError': '닉네임형식이 틀립니다.', 'status_num': 2 });
         }
-        else if (nicknameExists) {
+        else if (resultnickname) {
             return res.status(401).json({ 'invalid_requestError': '중복된 닉네임입니다.', 'status_num': 4 });
         }
         
@@ -140,8 +153,7 @@ const saveUser = async (email, password, nickname, imgname, imgpath, res) => {
             imgpath: imgpath
         };
         
-        users.push(newUser);
-        await fs.promises.writeFile(filePath, JSON.stringify(users, null, 2), 'utf8');
+        db.saveUser(newUser);
 
         // 성공 응답을 한 번만 보냄
         return res.status(200).json({"message": "회원가입성공!", "user_id": 1});
@@ -156,12 +168,10 @@ const saveUser = async (email, password, nickname, imgname, imgpath, res) => {
 //유저 로그인
 const login = async (email, password) => {
     try {
-        const users = await readUsers();
-        
-        const findemail = users.find(user => user.email === email)
-        if(findemail.password === password){
-            // req.session.username = findemail.nickname;
-            return {"message" : "로그인 성공~", "user_id" : 1, "nickname" : findemail.nickname};
+        const rows = await db.login(email, password);
+        const result = rows[0];
+        if(result.nickname){
+            return {"message" : "로그인 성공~", "user_id" : 1, "nickname" : result.nickname};
         }
         else{
             return json({"message" : "로그인 실패~", "user_id" : 0});
@@ -174,11 +184,10 @@ const login = async (email, password) => {
  //id맞는 유저 프로필이미지 불러오기
 const getimg = async (id, res) => {
     try {
-        let users = await readUsers();
-        
-        const findnickname = users.find(user => user.nickname === id)
-        if(findnickname.nickname === id){
-            res.status(200).json({"message" : "이미지 로드성공", "img": findnickname.imgname});
+        const rows = await db.getimg(id);
+        const result = rows[0];
+        if(result.imgname){
+            res.status(200).json(result.imgname);
         }
     } catch (error){
         return res.status(500).json({"message" : "서버 응답에 오류 발생"});
@@ -187,10 +196,8 @@ const getimg = async (id, res) => {
 
 const getinfo = async (nickname, res) => {
     try {
-        let users = await readUsers();
-        
-        const findinfo = users.find(user => user.nickname === nickname)
-        return res.status(200).json({"email":findinfo.email, "nickname" :findinfo.nickname, "imgname":findinfo.imgname, "imgpath":findinfo.imgpath});
+        const rows = await db.getinfo(nickname);
+        return res.status(200).json({"email":rows[0].email, "nickname" :rows[0].nickname, "imgname":rows[0].imgname, "imgpath":rows[0].imgpath});
     } catch (error){
         return res.status(500).json({"message" : "서버 응답에 오류 발생"});
     }
@@ -199,50 +206,18 @@ const getinfo = async (nickname, res) => {
 
 const patchinfo = async (imgpath, imgname, nickname, email, res) => {
     try{
-        let users = await readUsers();
-        const selectinfo=users.find(user => user.email === email);
+        const rows = await db.getinfoemail(email);
+        const nicknamecheck = await db.getinfonickname(nickname, email);
         if(!nick11.test(nickname) && !nickreg.test(nickname) && nickname){
-            if(selectinfo.nickname === nickname){
-                users.forEach(user => {
-                    if(user.nickname === selectinfo.nickname){
-                        user.imgname =imgname;
-                        user.imgpath =imgpath;
-                    }
-                })
-                await fs.promises.writeFile(filePath, JSON.stringify(users, null, 2), 'utf8');
+            if(rows[0].nickname === nickname){
+                await db.patchinfo(imgpath, imgname, nickname, email);
                 return ({"message": '정보 변경성공~.', "user_id" :1, "username": nickname});
             }
-            else if(users.some(user => user.nickname === nickname)){
+            else if(nicknamecheck.length){
                 return res.status(409).json({"message": '중복된 닉네임입니다.', "nickname" :nickname});
             }
             else{
-                /// 게시글, 게시글 댓글, 게시글 좋아요 닉네임 변경 하는 로직 추가 해야함
-                let dialog = await readDialogs();
-                dialog.forEach(element => {
-                    if(element.id===selectinfo.nickname){
-                    element.id=nickname;
-                    element.image = imgname;
-                    }
-                    element.cmt.forEach(element2 => {
-                        if(element2.id === selectinfo.nickname){
-                            element2.id = nickname;
-                        }
-                    })
-                    element.good.forEach(element3 => {
-                        if(element3.nickname === selectinfo.nickname){
-                            element3.nickname = nickname;
-                        }
-                    })
-                    
-                });
-                users.forEach(user => {
-                    if(user.nickname === selectinfo.nickname){
-                        user.nickname = nickname;
-                        user.imgname =imgname;
-                    }
-                })
-                await fs.promises.writeFile(filePath, JSON.stringify(users, null, 2), 'utf8');
-                await fs.promises.writeFile(dialogPath, JSON.stringify(dialog, null, 2), 'utf8');
+                await db.patchinfo(imgpath, imgname, nickname, email);
                 return ({"message": '정보 변경성공~.', "user_id" :1, "username": nickname});
             }
         }
@@ -257,33 +232,7 @@ const patchinfo = async (imgpath, imgname, nickname, email, res) => {
 // 사용자 삭제
 const deleteUser = async (username) => {
     try {
-        let users = await readUsers();
-        let dialog = await readDialogs();
-        const nickname = users.find(user => user.nickname === username);
-        users = users.filter(user => user.email !== nickname.email);
-        dialog = dialog.filter(element => element.id !== nickname.nickname);
-
-
-
-        let count = 1;
-        dialog.forEach(element => {
-            element.list = count;
-            count++;
-            
-            let count2 = 1;
-            let filtercmt=element.cmt.filter(element2 => element2.id !== nickname.nickname);
-            let filtergood = element.good.filter(element3 => element3.nickname !== nickname.nickname)
-            filtercmt.forEach(element2 => {
-                element2.no = count2;
-                count2++;
-            });
-            element.cmt = filtercmt;
-            element.good = filtergood;
-        });
-        
-        
-         await fs.promises.writeFile(dialogPath, JSON.stringify(dialog, null, 2), 'utf8');
-         await fs.promises.writeFile(filePath, JSON.stringify(users, null, 2), 'utf8');
+        await db.deleteUser(username);
     } catch (error) {
         throw new Error('Error deleting user from Users.json');
     }
@@ -292,12 +241,7 @@ const deleteUser = async (username) => {
 // 비밀번호 변경
 const updatePassword = async (nickname, newPassword) => {
     try {
-        let users = await readUsers();
-        const userIndex = users.findIndex(user => user.nickname === nickname);
-        if (userIndex !== -1) {
-            users[userIndex].password = newPassword;
-            await fs.promises.writeFile(filePath, JSON.stringify(users, null, 2), 'utf8');
-        }
+        await db.updatePassword(nickname, newPassword);
     } catch (error) {
         throw new Error('Error updating password');
     }
@@ -320,7 +264,6 @@ const updateNickname = async (nickname, email) => {
 
 
 export {
-    getUser,
     readUsers,
     readDialogs,
     emailcheck,

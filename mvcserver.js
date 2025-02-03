@@ -115,13 +115,7 @@ import { getConnection } from'./database/connect/mariadb.js';
       // 풀에서 연결을 가져오기
       const connection = await getConnection();
 
-      // SQL 쿼리 실행
-      const rows = await connection.query('SELECT * FROM test.Users');
-        // console.log('쿼리 결과:', rows);
-
-
       connection.release();  // 연결 반환
-      return rows;
    } catch (error) {
       console.error("Database query error:", error);
    }
@@ -162,11 +156,17 @@ app.use(helmet({
 const port = 3000;
 app.listen(port, () => {
     fetch('http://localhost:3000/data')
-    .then(response => response.json())
-    .then(data => {
-        console.log(data)
-    })
-
-   console.log("today", moment().add(0,"day").format("YYYY-MM-DD HH-mm-ss"));
+    
+    // const fetchDialogInfo = async () => {
+    //     try {
+    //       const data = await getinfo(1); // 반드시 await 사용
+    //       console.log('쿼리 결과:', data);
+    //     } catch (error) {
+    //       console.error('에러:', error.message);
+    //     }
+    //   };
+      
+    //   fetchDialogInfo();
+    console.log("today", moment().add(0,"day").format("YYYY-MM-DD HH-mm-ss"));
   console.log(`Server running on port ${port}`.underline.random);
 });

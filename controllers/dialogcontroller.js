@@ -1,4 +1,4 @@
-import * as dialogModel from '../models/dialogmodels.js';
+import * as dialogModel from '../models/DBdialogmodels.js';
 const readDialog = async (req, res) => {
     try{
         res.status(200).json(await dialogModel.readDialogs());
@@ -10,10 +10,7 @@ const readDialog = async (req, res) => {
 const selectDialog = async (req, res) => {
     try {
         const { dialogId, no } = req.params;
-        const data=await dialogModel.readDialogs();
-        const selectdia=data.findIndex(user => user.list == no) //
-        if(data[selectdia].id === dialogId){
-        // if(dialogId){
+        if(dialogId){
             const username =req.session.username;
             dialogModel.addview(dialogId, no, username, res); //호출 될때 view+1
             // res.status(201).json({data:data[selectdia], "username":username});
@@ -24,11 +21,26 @@ const selectDialog = async (req, res) => {
         res.status(500).json({ message: 'Error saving dialog', error: error.message });
     }
 }
+
+const selectcomment = async (req, res) => {
+    try {
+        const { dialogId, no } = req.params;
+        if(dialogId){
+            dialogModel.selectcomment(dialogId, no, res);
+        }else {
+            res.status(404).json({ message: '댓글 내용이 없습니다.' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error saving dialog', error: error.message });
+    }
+}
+
 const goodcnt = async (req, res) => {
     try {
         const { dialogId, no } = req.params;
+        const username =req.session.username;
             const goodcheck = await dialogModel.goodcnt(dialogId, no)
-            res.status(201).json({goodcheck, username:req.session.username});
+            res.status(201).json({goodcheck, username:username});
     } catch (error) {
         res.status(500).json({ message: 'Error saving dialog', error: error.message });
     }
@@ -55,11 +67,11 @@ const ungood = async (req, res) => {
 }
 
 const checkComment = async (req, res) => {
-    const { id, i } = req.params;
+    const { no, i } = req.params;
     const nick = req.session.username;
     try {
-        const commentData = await dialogModel.selectComment(id, nick, i);
-        res.status(200).json({ cmt :commentData.cmt, message: '댓글을 성공적으로 가져왔습니다.' });
+        const commentData = await dialogModel.selectComment(no, nick, i);
+        res.status(200).json({ cmt :commentData.content, message: '댓글을 성공적으로 가져왔습니다.' });
     } catch (error) {
         console.error('파일 처리 중 오류 발생:', error.message);
         res.status(500).end('internal_server_error');
@@ -69,10 +81,10 @@ const checkComment = async (req, res) => {
 
 const updateComment = async (req, res) => {
     try {
-        const { id, i } = req.params;
+        const { no, i } = req.params;
         const nick = req.session.username;
         const updatedData = req.body;
-        await dialogModel.updateComment(id, nick, i, updatedData);
+        await dialogModel.updateComment(no, nick, i, updatedData);
         res.status(200).json({ message: 'Dialog updated successfully!' });
     } catch (error) {
         res.status(500).json({ message: 'Error updating dialog', error: error.message });
@@ -85,7 +97,7 @@ const addComment = async (req, res) => {
         const nick = req.session.username;
         const i = req.params.no;
         const commentData = req.body;
-        const Data = { ...commentData, id: nick };
+        const Data = {commentData};
         await dialogModel.addComment(id, nick, i, Data);
         res.status(200).json({ message: 'Dialog updated successfully!' });
     } catch(error) {
@@ -96,9 +108,8 @@ const addComment = async (req, res) => {
 const deleteComment = async (req, res) => {
     try{
         const { id, no, i }= req.params;
-        const commentData = req.body;
         
-        await dialogModel.deleteComment(id, no, i, commentData);
+        await dialogModel.deleteComment(id, no, i);
         res.status(200).json({ message: 'Dialog updated successfully!' });
     } catch(error) {
         res.status(500).json({ message: 'Error addcmt dialog', error: error.message });
@@ -160,6 +171,7 @@ const updateDialog = async (req, res) => {
 };
 export {
     selectDialog,
+    selectcomment,
     goodcnt,
     good,
     ungood,
