@@ -367,7 +367,7 @@ const deleteComment = async (no, i) => {
     await conn.beginTransaction();
     await conn.query(`delete from test.comment WHERE list = ${no} and no = ${i}`);
     await conn.query(`SET @new_no = -1`);
-    await conn.query(`UPDATE test.comment SET no = (@new_no := @new_no + 1) ORDER BY no`);
+    await conn.query(`UPDATE test.comment SET no = (@new_no := @new_no + 1) where list = ${no} ORDER BY no`); //많이 비효율적임..
     await conn.commit();
   } catch (err) {
     await conn.rollback();

@@ -89,7 +89,7 @@ app.post('/image', upload.single('image'), (req, res) => {
     console.log('업로드된 파일:', req.file);
     const ext = path.extname(req.file.originalname);
     console.log(ext);
-    if(ext !== '.jpeg' && ext !=='.png'){
+    if(ext !== '.jpeg' && ext !=='.png'&& ext !=='.gif'){
       return res.status(400).json({ message : '이미지 형식이 맞지 않습니다.'});
    }
     res.status(200).json({ message: '이미지 업로드 성공', filePath: req.file.path, filename: req.file.filename });
