@@ -162,8 +162,13 @@ const deleteUser = async (nickname) => {
     conn = await pool.getConnection();
     await conn.beginTransaction();
     await conn.query(`Delete from test.Users where nickname = '${nickname}'`);
-    await conn.query(`SET @new_no1 = -1`);
-    await conn.query(`UPDATE test.comment SET no = (@new_no1 := @new_no1 + 1) ORDER BY no`);
+    let e = await conn.query(`select MAX(list) as list from test.comment`);
+    console.log(e[0].list);
+    for(let i = 0; i<e[0].list ;e[0].list--){
+      await conn.query(`SET @new_no1 = -1`);
+      await conn.query(`UPDATE test.comment SET no = (@new_no1 := @new_no1 + 1) where list = ${e[0].list} ORDER BY no`);
+    }
+    
     await conn.query(`SET @new_no2 = 0`);
     await conn.query(`UPDATE test.Dialog SET list = (@new_no2 := @new_no2 + 1) ORDER BY list`);
     await conn.commit();
