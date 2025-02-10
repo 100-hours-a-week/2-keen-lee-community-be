@@ -13,7 +13,7 @@ import cookieParser from 'cookie-parser'
 import fs from 'fs'
 
 import { fileURLToPath } from 'url';
-
+const localhost = 'localhost';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
@@ -21,7 +21,7 @@ const app = express();
 import dialogRoutes from './routes/dialogRouter.js'; // default import
 import userRoutes from './routes/userRoutes.js';
 
-app.use(cors({origin: 'http://localhost:3001', credentials: true }));
+app.use(cors({origin: `http://${localhost}:3001`, credentials: true }));
 
 app.use(cookieParser());
 app.use(bodyParser.json());
@@ -126,7 +126,7 @@ const times = moment().format("YYYY-MM-DD")
 
 
 //app.use(cors({ origin: 'http://127.0.0.1:5500' }));
-// app.use(cors({origin: 'http://localhost:3001'}));
+// app.use(cors({origin: 'http://${localhost}:3001'}));
 // app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' })); // JSON 요청 크기 10MB까지 허용
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true })); // URL-encoded 요청 크기 10MB까지 허용
@@ -146,8 +146,8 @@ app.get('/data', async (req, res) => {
 app.use(helmet({
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ["'self'", 'https://localhost:3000'],
-        scriptSrc: ["'self'", 'https://localhost:3000'],
+        defaultSrc: ["'self'", `https://${localhost}:3000`],
+        scriptSrc: ["'self'", `https://${localhost}:3000`],
       },
     },
     xssFilter: true,
@@ -155,7 +155,7 @@ app.use(helmet({
   }));
 const port = 3000;
 app.listen(port, () => {
-    fetch('http://localhost:3000/data')
+    fetch(`http://${localhost}:3000/data`)
     
     // const fetchDialogInfo = async () => {
     //     try {
