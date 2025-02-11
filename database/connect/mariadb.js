@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import mariadb from 'mariadb';
 
 // MariaDB 연결 풀 생성
